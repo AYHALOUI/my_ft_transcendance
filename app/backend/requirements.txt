@@ -1,0 +1,7 @@
+Django
+django-environ
+gunicorn
+djangorestframework-simplejwt
+python-dotenv
+djangorestframework
+django-cors-headers
