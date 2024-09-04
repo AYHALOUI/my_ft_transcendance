@@ -9,6 +9,8 @@ class User(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     username = models.CharField(max_length=30, unique=True, default='')
     password = models.CharField(max_length=30)
+    new_password = models.CharField(max_length=30, default='')
+    confirm_password = models.CharField(max_length=30, default='')
     mobile_number = models.CharField(max_length=10, default='')
     display_name = models.CharField(max_length=30, default='')
     bio = models.TextField(default='')

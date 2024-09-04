@@ -152,37 +152,83 @@ def display_text(request):
     return HttpResponse(f'Text: {text}')
 
 
+# class UserProfileView(APIView):
 
-# def update_profile(request):
-#     if request.method == 'POST':
-#         form = UserProfileForm(request.POST, request.FILES, instance=request.user)
-#         if form.is_valid():
-#             form.save()
-#             return HttpResponse('Profile updated successfully')
-#         else:
-#             return HttpResponse('Invalid form')
-#     else:
-#         form = UserProfileForm(instance=request.user)
-#         return render(request, 'update_profile.html', {'form': form})
-
-# @api_view(['GET'])
-# def get_user_profile(request):
-#     if request.user:
-#         user = request.user
+#     def get(self, request):
+#         try:
+#             user = User.objects.first()
+#         except User.DoesNotExist:
+#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 #         serializer = UserSerializer(user)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-#     else:
-#         return Response({"error": "User is not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+#         return Response(serializer.data)
 
-from rest_framework import generics, permissions
-from rest_framework.parsers import MultiPartParser, FormParser
-from .models import User
-from .serializers import UserSerializer
+#     @csrf_exempt
+#     def update(self, request):
+#         if request.method == 'PUT':
+#             try:
+#                 user = User.objects.first()
+#             except User.DoesNotExist:
+#                 return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+#             serializer = UserSerializer(user, data=request.data)
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 Response['Access-Control-Allow-Origin'] = 'http://localhost:5173'
+#                 return Response(serializer.data)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         else:
+#             return Response({'error': 'method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-class UserProfileView(generics.RetrieveUpdateAPIView):
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+#     # def update(self, instance, validated_data):
+#     #     instance.first_name = validated_data.get('first_name', instance.first_name)
+#     #     instance.last_name = validated_data.get('last_name', instance.last_name)
+#     #     instance.email = validated_data.get('email', instance.email)
+#     #     instance.phone_number = validated_data.get('mobile_number', instance.phone_number)
+#     #     instance.username = validated_data.get('username', instance.username)
+#     #     instance.bio = validated_data.get('bio', instance.bio)
+#     #     instance.save()
+#     #     return instance
 
-    def get_object(self):
-        return self.request.user
+
+# ----------------------------------------------------------------------------------
+# @api_view(['GET', 'PUT'])
+# @csrf_exempt
+# def user_profile(request):
+#     if request.method == 'GET':
+#         try:
+#             user = User.objects.first()
+#         except User.DoesNotExist:
+#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+#         serializer = UserSerializer(user)
+#         return Response(serializer.data)
+    
+#     if request.method == 'PUT':
+#         try:
+#             user = User.objects.first()
+#         except User.DoesNotExist:
+#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+# ----------------------------------------------------------------------------------
+
+@csrf_exempt
+@api_view(['GET'])
+def get_user(request, pk):
+    try:
+        user = User.objects.get(id=pk)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    serializer = UserSerializer(user)
+    return Response(serializer.data)
+
+@csrf_exempt
+@api_view(['PUT'])
+def update_user(request, pk):
+    if request.method == 'PUT':
+        try:
+            user = User.objects.get(id=pk)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

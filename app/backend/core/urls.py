@@ -1,7 +1,7 @@
 from django.urls import path, include
 from UserManagement import views
 
-from UserManagement.views import UserProfileView
+# from UserManagement.views import UserProfileView
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -19,6 +19,6 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('api/login/', views.login, name='login'),
     path('api/register/', views.register, name='register'),
-    
-    path('api/user/', UserProfileView.get_object(self), name='user'),
+    path('api/profiles/<int:pk>/', views.get_user, name='user-profile'),
+    path('api/profiles/update/<int:pk>/', views.update_user, name='update-user-profile'),
 ]

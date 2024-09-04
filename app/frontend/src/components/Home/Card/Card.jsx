@@ -84,9 +84,9 @@ function Card({ dialogRef, closeDialog, isSigningIn, setIsSigningIn }) {
 			console.log('response status =>', response.status);
 			if (response.status === 200) {
 				console.log('Registration successful');
-				// alert('Login successful');
+				alert('Login successful');
 				// window.location.href = '/dashboard';
-				navigate('/dashboard');
+				// navigate('/dashboard');
 			}
 		} catch (error) {
 			setError('Registration failed. Please try again.');
