@@ -13,6 +13,9 @@ import uuid
 from rest_framework import status
 from .serializers import UserSerializer
 
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.decorators import parser_classes
+
 from django.http import HttpResponseRedirect
 
 from rest_framework.views import APIView
@@ -221,14 +224,16 @@ def get_user(request, pk):
 
 @csrf_exempt
 @api_view(['PUT'])
+@parser_classes([MultiPartParser, FormParser])
 def update_user(request, pk):
-    if request.method == 'PUT':
-        try:
-            user = User.objects.get(id=pk)
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = UserSerializer(user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        user = User.objects.get(id=pk)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = UserSerializer(user, data=request.data, partial=True)  # Allow partial updates
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

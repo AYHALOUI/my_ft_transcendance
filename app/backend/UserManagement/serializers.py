@@ -10,8 +10,9 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True, allow_blank=False)
     bio = serializers.CharField(required=False, allow_blank=True)
     displayname = serializers.CharField(required=False, allow_blank=True)
+    profile_picture = serializers.ImageField(required=False, allow_null=True)
     
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'mobile_number', 'username', 'displayname','bio']
+        fields = ['first_name', 'last_name', 'email', 'mobile_number', 'username', 'displayname','bio', 'profile_picture']
