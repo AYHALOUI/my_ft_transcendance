@@ -24,8 +24,8 @@ from rest_framework.views import APIView
 from .models import User
 
 # from .forms import UserProfileForm
-#pass=Aymene@@13+
-#gmail=mo7a1@gmail.com
+#pass=Ahaloui@@13+
+#gmail=aymene@gmail.com
 
 
 @csrf_exempt  # Disable CSRF for this view for testing purposes
@@ -111,30 +111,6 @@ def generate_random_username():
     suffix = str(uuid.uuid4())[:8]
     return prefix + suffix
 
-@csrf_exempt  # Disable CSRF for this view for testing purposes
-def register(request):
-    if request.method == 'POST':
-        try:
-            # Parse the JSON data from the request body
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-
-        # Initialize the form with the JSON data
-        # insert dummy username into the data json using uuid
-        dummy = generate_random_username()
-        data.update({'username': dummy})
-        print(f"Data: {data}")
-        form = UserCreationForm(data)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.save()
-            return JsonResponse({'message': 'User created successfully'}, status=201)
-        else:
-            # Return form errors as JSON
-            return JsonResponse(form.errors, status=400)
-    else:
-        return render(request, 'register.html')
 
 
 @api_view(['GET'])
@@ -155,85 +131,27 @@ def display_text(request):
     return HttpResponse(f'Text: {text}')
 
 
-# class UserProfileView(APIView):
+class UserProfileView(APIView):
 
-#     def get(self, request):
-#         try:
-#             user = User.objects.first()
-#         except User.DoesNotExist:
-#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-#         serializer = UserSerializer(user)
-#         return Response(serializer.data)
-
-#     @csrf_exempt
-#     def update(self, request):
-#         if request.method == 'PUT':
-#             try:
-#                 user = User.objects.first()
-#             except User.DoesNotExist:
-#                 return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-#             serializer = UserSerializer(user, data=request.data)
-#             if serializer.is_valid():
-#                 serializer.save()
-#                 Response['Access-Control-Allow-Origin'] = 'http://localhost:5173'
-#                 return Response(serializer.data)
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#         else:
-#             return Response({'error': 'method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-#     # def update(self, instance, validated_data):
-#     #     instance.first_name = validated_data.get('first_name', instance.first_name)
-#     #     instance.last_name = validated_data.get('last_name', instance.last_name)
-#     #     instance.email = validated_data.get('email', instance.email)
-#     #     instance.phone_number = validated_data.get('mobile_number', instance.phone_number)
-#     #     instance.username = validated_data.get('username', instance.username)
-#     #     instance.bio = validated_data.get('bio', instance.bio)
-#     #     instance.save()
-#     #     return instance
-
-
-# ----------------------------------------------------------------------------------
-# @api_view(['GET', 'PUT'])
-# @csrf_exempt
-# def user_profile(request):
-#     if request.method == 'GET':
-#         try:
-#             user = User.objects.first()
-#         except User.DoesNotExist:
-#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-#         serializer = UserSerializer(user)
-#         return Response(serializer.data)
+    parser_classes = [MultiPartParser, FormParser]
     
-#     if request.method == 'PUT':
-#         try:
-#             user = User.objects.first()
-#         except User.DoesNotExist:
-#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    def get(self, request, pk):
+        try:
+            user = User.objects.get(id=pk)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
 
-# ----------------------------------------------------------------------------------
-
-@csrf_exempt
-@api_view(['GET'])
-def get_user(request, pk):
-    try:
-        user = User.objects.get(id=pk)
-    except User.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-    serializer = UserSerializer(user)
-    return Response(serializer.data)
-
-@csrf_exempt
-@api_view(['PUT'])
-@parser_classes([MultiPartParser, FormParser])
-def update_user(request, pk):
-    try:
-        user = User.objects.get(id=pk)
-    except User.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = UserSerializer(user, data=request.data, partial=True)  # Allow partial updates
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, pk):
+        try:
+            user = User.objects.get(id=pk)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
