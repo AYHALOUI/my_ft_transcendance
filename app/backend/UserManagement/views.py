@@ -13,16 +13,19 @@ import uuid
 from rest_framework import status
 from .serializers import UserSerializer
 
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.decorators import parser_classes
 
 from django.http import HttpResponseRedirect
+
+from django.core.files.uploadedfile import UploadedFile
 
 from rest_framework.views import APIView
 # from rest_framework.permissions import IsAuthenticated
 
 from .models import User
 
+import os
 # from .forms import UserProfileForm
 #pass=Ahaloui@@13+
 #gmail=aymene@gmail.com
@@ -131,10 +134,24 @@ def display_text(request):
     return HttpResponse(f'Text: {text}')
 
 
-class UserProfileView(APIView):
+# class UserProfileView(APIView):
 
-    parser_classes = [MultiPartParser, FormParser]
+#     parser_classes = [MultiPartParser, FormParser, JSONParser]
     
+#     def get(self, request, pk):
+#         try:
+#             user = User.objects.get(id=pk)
+#         except User.DoesNotExist:
+#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+#         serializer = UserSerializer(user)
+#         return Response(serializer.data)
+
+
+
+class UserProfileView(APIView):
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+
     def get(self, request, pk):
         try:
             user = User.objects.get(id=pk)
@@ -144,14 +161,35 @@ class UserProfileView(APIView):
         return Response(serializer.data)
 
     def put(self, request, pk):
-        try:
-            user = User.objects.get(id=pk)
-        except User.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                user = User.objects.get(id=pk)
+            except User.DoesNotExist:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Create a mutable copy of the data
+            mutable_data = request.data.copy()
+            
+            # Handle profile picture update or removal
+            if 'profile_picture' in mutable_data:
+                if mutable_data['profile_picture'] in [None, '', 'null']:
+                    # Remove the current profile picture if it's not the default
+                    if user.profile_picture and user.profile_picture.name != 'profile_pictures/avatar.jpg':
+                        if os.path.isfile(user.profile_picture.path):
+                            os.remove(user.profile_picture.path)
+                    user.profile_picture = 'profile_pictures/avatar.jpg'
+                    user.save(update_fields=['profile_picture'])
+                    # Remove profile_picture from mutable_data
+                    mutable_data.pop('profile_picture')
+                elif isinstance(mutable_data['profile_picture'], UploadedFile):
+                    # New file uploaded, let the serializer handle it
+                    pass
+                else:
+                    # Invalid data for profile_picture, remove it to avoid serializer errors
+                    mutable_data.pop('profile_picture')
+            
+            serializer = UserSerializer(user, data=mutable_data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -7,21 +7,7 @@ import axios from 'axios'
 
 
 
-
-// const user = {
-// 	firstname: 'aymene',
-// 	lastname: 'haloui',
-// 	email: 'test@gmail.com',
-// 	phonenumber: '+212611223344',
-// 	current_password: 'Aymene123',
-// 	new_password: 'Aymene1234',
-// 	confirm_password: 'Aymene1234',
-// 	username: 'ahaloui',
-// 	displayname: 'Aymene',
-// 	bio: 'Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dolor quam, aperiam sit ratione officiis asperiores id quisquam, fugiat ipsa sed autem.',
-// 	profile_picture: './assets/images/moudrib.jpeg',
-// }
-
+let tmp = '/profile_pictures/';
 
 function Input({ type, label, placeholder, id, value, onChange }) {
 	return (
@@ -43,8 +29,13 @@ function Input({ type, label, placeholder, id, value, onChange }) {
 	)
 }
 
+var defaultImagePath = "/profile_pictures/avatar.jpg";
+
 const Settings = () => {
 
+	const [image, setImage] = useState('');
+	const [preview, setPreview] = useState('');
+	const [selectedFile, setSelectedFile] = useState(null);
 
 	const [user, setUser] = useState({});
     const [first_name, setFirstname] = useState('');
@@ -55,10 +46,9 @@ const Settings = () => {
     const [new_password, setNewPassword] = useState('');
     const [confirm_password, setConfirmPassword] = useState('');
     const [username, setUsername] = useState('');
-    const [displayname, setDisplayname] = useState('');
+    const [display_name, setDisplayname] = useState('');
     const [bio, setBio] = useState('');
-
-	/* -----------------------------------------------------------------------------------  */
+	// const [is_imge_changed, setIsImageChanged] = useState(false);
 	window.addEventListener('load', function () {
 		var resetButton = document.getElementById('resetButton')
 
@@ -71,18 +61,17 @@ const Settings = () => {
 	})
 
 
-	function fetch_user_info() {
-		axios.get('http://127.0.0.1:8000/api/profiles/1/ ')
-		.then((response) => {
-			setUser(response.data)
-		})
-		.catch((error) => {
-			console.log(error)
-		})
-	}
 
 	useEffect(() => {
-		fetch_user_info()
+			const fetchUserInfo = async () => {
+				try {
+					const response = await axios.get('http://127.0.0.1:8000/api/users/1/');
+					setUser(response.data);
+				} catch (error) {
+					console.error(error);
+				}
+			};
+			fetchUserInfo();
 	}, [])
 
 	useEffect(() => {
@@ -92,53 +81,116 @@ const Settings = () => {
             setEmail(user.email || '');
             setPhonenumber(user.mobile_number || '');
             setUsername(user.username || '');
-            setDisplayname(user.displayname || '');
+            setDisplayname(user.display_name || '');
             setBio(user.bio || '');
+			setImage(user.profile_picture || '');
         }
     }, [user]);
 
 	function update_user_info() {
-		const userProfileData = {
-			first_name: first_name,
-			last_name: last_name,
-			email: email,
-			mobile_number: mobile_number,
-			// current_password: current_password,
-			// new_password: new_password,
-			// confirm_password: confirm_password,
-			username: username,
-			displayname: displayname,
-			bio: bio
+
+		const userProfileData = new FormData();
+
+		if (first_name !== user.first_name) 
+		{
+			userProfileData.append('first_name', first_name);
+			setUser({...user, first_name: first_name});
+		}
+    	if (last_name !== user.last_name) 
+		{
+			userProfileData.append('last_name', last_name);
+			setUser({...user, last_name: last_name});
+		}
+		if (email !== user.email)
+		{
+			userProfileData.append('email', email);
+			setUser({...user, email: email});
+		}
+		if (mobile_number !== user.mobile_number)
+		{
+			userProfileData.append('mobile_number', mobile_number);
+			setUser({...user, mobile_number: mobile_number});
+		}
+		if (username !== user.username)
+		{
+			userProfileData.append('username', username);
+			setUser({...user, username: username});
+		}
+		if (display_name !== user.display_name)
+		{
+			userProfileData.append('display_name', display_name);
+			setUser({...user, display_name: display_name});
+		}
+		if (bio !== user.bio)
+		{
+			userProfileData.append('bio', bio);
+			setUser({...user, bio: bio});
+		}
+		if (selectedFile !== null && selectedFile.name !== user.profile_picture)
+		{
+			userProfileData.append('profile_picture', selectedFile);
+			setUser({...user, profile_picture: selectedFile});
+		}
+		else
+ 		{
+			userProfileData.append('profile_picture', "null");
 		}
 
-		axios.put('http://127.0.0.1:8000/api/profiles/update/1/', userProfileData,)
+
+		axios.put("http://127.0.0.1:8000/api/users/1/", userProfileData, 
+		{
+			headers: 
+			{
+				'Content-Type': 'multipart/form-data',
+			},
+		})
 		.then((response) => {
-			console.log(response.data)
+			// console.log(response.data);
 		})
 		.catch((error) => {
-			if (error.response && error.response.data) {
-				// Extract error data from response
-				const errorData = error.response.data;
-	
-				// Construct error message
-				let errorMessage = '';
-				for (const [field, messages] of Object.entries(errorData)) {
-					errorMessage += `${field}: ${messages.join(', ')}\n`;
-				}
-	
-				// Alert the error message
-				alert(errorMessage);
-			} else {
-				// Handle other types of errors (network issues, etc.)
-				alert('An unexpected error occurred.');
-			}});
+			if (error.response && error.response.data) 
+			{
+					const errorData = error.response.data;
+					let errorMessage = ""; 
+					for (const [field, messages] of Object.entries(errorData)) {
+					errorMessage += `${field}: ${messages.join(", ")}\n`;
+			}
+				// alert(errorMessage);
+				console.log(errorMessage);
+			} 
+			else 
+			{
+				alert("An unexpected error occurred.");
+			}
+		}
+		);
 	}
 
 
 	function saveChanges() {
-	
 		update_user_info()
 	}
+
+	function handleImageChange(e) {
+		const file = e.target.files[0];
+		if (file){
+			setPreview(URL.createObjectURL(file));
+			setSelectedFile(file);
+		}
+	}
+
+	function handleUploadClick() {
+		document.getElementById('fileInput').click();
+	}
+
+
+	function handleRemoveImage() {
+		setPreview(null);
+		setSelectedFile(null);
+		setImage(defaultImagePath);
+	}
+
+	// console.log(test);
 
 	/* -----------------------------------------------------------------------------------  */
 
@@ -161,30 +213,45 @@ const Settings = () => {
 								Must be JPEG, PNG, or GIF and cannot exceed 5MB.
 							</p>
 						</div>
-						<div className='flex items-center max-ms:flex-col lp:gap-14 tb:gap-8 gap-5'>
+
+
+
+						<div className='flex items-center max-ms:flex-col lp:gap-14 tb:gap-8 gap-5' >
+
 							<div>
 								<img
-									src= '/assets/images/moudrib.jpeg'
+									
+									src={ preview || `http://localhost:8000${image}`}
 									className='rounded-full border border-primary profile-pic'
-									alt=''
+									alt='Profile Picture'
 								/>
 							</div>
+
 							<div className='flex max-ms:flex-col lp:gap-2 gap-1'>
+								<input
+          							type="file"
+          							id="fileInput"
+          							accept="image/*"
+          							onChange={handleImageChange}
+          							style={{ display: "none" }} // Hide the file input
+									/>	
 								<Button
-									className={
-										'rounded-md border-border font-regular buttons-text update-button'
-									}
-								>
+									className={'rounded-md border-border font-regular buttons-text update-button'}
+									onClick={handleUploadClick}
+									>
 									Update Profile Picture
 								</Button>
 								<Button
 									className={
 										'rounded-md border-border font-regular buttons-text remove-button'
 									}
+									onClick={handleRemoveImage}
 								>
 									Remove
 								</Button>
 							</div>
+
+
 						</div>
 					</div>
 					<div className='h-0.5 separators'></div>
@@ -297,7 +364,7 @@ const Settings = () => {
 											type={'text'}
 											label={'Display Name'}
 											placeholder={'Arobase'}
-											value={displayname}
+											value={display_name}
 											onChange={(e) => setDisplayname(e.target.value)}
 										/>
 									</div>
