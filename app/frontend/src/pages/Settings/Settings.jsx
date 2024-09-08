@@ -6,9 +6,6 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 
 
-
-let tmp = '/profile_pictures/';
-
 function Input({ type, label, placeholder, id, value, onChange }) {
 	return (
 		<div className='flex flex-col'>
@@ -131,7 +128,7 @@ const Settings = () => {
 			userProfileData.append('profile_picture', selectedFile);
 			setUser({...user, profile_picture: selectedFile});
 		}
-		else
+		else 
  		{
 			userProfileData.append('profile_picture', "null");
 		}
@@ -189,8 +186,6 @@ const Settings = () => {
 		setSelectedFile(null);
 		setImage(defaultImagePath);
 	}
-
-	// console.log(test);
 
 	/* -----------------------------------------------------------------------------------  */
 

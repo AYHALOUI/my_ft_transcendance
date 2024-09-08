@@ -134,19 +134,6 @@ def display_text(request):
     return HttpResponse(f'Text: {text}')
 
 
-# class UserProfileView(APIView):
-
-#     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    
-#     def get(self, request, pk):
-#         try:
-#             user = User.objects.get(id=pk)
-#         except User.DoesNotExist:
-#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-#         serializer = UserSerializer(user)
-#         return Response(serializer.data)
-
-
 
 class UserProfileView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
